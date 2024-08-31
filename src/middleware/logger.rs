@@ -4,7 +4,7 @@ use std::{
     time::Instant,
 };
 
-use tonic::{body::BoxBody, Status};
+use tonic::body::BoxBody;
 use tower::{Layer, Service};
 
 #[derive(Debug, Clone, Default)]
@@ -48,22 +48,9 @@ where
         let mut inner = std::mem::replace(&mut self.inner, clone);
 
         Box::pin(async move {
-            let uri = req
-                .uri()
-                .to_string()
-                .replace("http://", "")
-                .replace("https://", "");
+            let uri = req.uri().clone();
             let version = req.version();
-            let content_type = req
-                .headers()
-                .get("content-type")
-                .ok_or(Status::invalid_argument("Missing content-type Header"))
-                .map_err(|err| err)
-                .unwrap()
-                .to_str()
-                .map_err(|_| Status::invalid_argument("Missing content-type Header"))
-                .unwrap()
-                .to_owned();
+            let content_type = req.headers().get("content-type").cloned();
 
             // Do extra async work here...
             let response = inner.call(req).await?;
