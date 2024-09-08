@@ -3,13 +3,13 @@ use std::{error::Error, net::SocketAddr};
 use dotenv::dotenv;
 use interceptor::api_key::ApiKeyInterceptor;
 use middleware::logger::LoggerMiddlewareLayer;
-use proto::calculator_server::CalculatorServer;
-use service::calculator_service::CalculatorService;
+use proto::calculator_service_server::CalculatorServiceServer;
+use service::calculator_service::CalculatorSvc;
 use tonic::transport::Server;
 
 pub(crate) mod proto {
     // Name of the package in the ".proto" file
-    tonic::include_proto!("calculator");
+    tonic::include_proto!("calculator.v1");
 
     pub const FILE_DESCRIPTOR_SET: &[u8] =
         // set in the buid.rs file
@@ -25,8 +25,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
     env_logger::init();
 
-    let addr = "[::1]:4000".parse::<SocketAddr>()?;
-    let calc = CalculatorService::default();
+    let addr = "0.0.0.0:4000".parse::<SocketAddr>()?;
+    let calc = CalculatorSvc::default();
     let interceptor = ApiKeyInterceptor::default();
 
     // laod reflection
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Server::builder()
         .layer(layer)
         .add_service(reflection_service)
-        .add_service(CalculatorServer::with_interceptor(calc, interceptor))
+        .add_service(CalculatorServiceServer::with_interceptor(calc, interceptor))
         .serve(addr)
         .await?;
 

@@ -1,0 +1,12 @@
+services:
+  app:
+    command: 
+    build: .
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src:/app/src
+      - ./proto:/app/proto
+      - ./build.rs:/app/build.rs
+    env_file:
+        - .env
